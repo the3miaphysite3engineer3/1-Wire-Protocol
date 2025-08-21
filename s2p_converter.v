@@ -1,23 +1,24 @@
-module s2p_converter (
-    input wire clk,
-    input wire rst,
-    input wire bit_value,
-    input wire status,
-    output reg [7:0] data_out
+module s2p_converter #(
+    parameter WIDTH = 16   // default = 16 bits, can be overridden
+)(
+    input  wire              clk,
+    input  wire              rst,
+    input  wire              bit_value,
+    output reg  [WIDTH-1:0]  data_out
 );
 
-reg i;
-initial begin
-    data_out = 0;
-    i = 0;
-end
+    reg [$clog2(WIDTH):0] bit_index;  // enough bits to count WIDTH
 
-always @(posedge clk or posedge rst) begin
-    if(rst) data_out <= 8'b00000000;
-    else(i<=7) begin
-        data_out[i] <= bit_value;
-        i=i+1;
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            data_out  <= {WIDTH{1'b0}};
+            bit_index <= 0;
+        end else begin
+            if (bit_index < WIDTH) begin
+                data_out[bit_index] <= bit_value;  // LSB-first shifting
+                bit_index <= bit_index + 1;
+            end
+        end
     end
-end
-    
+
 endmodule
